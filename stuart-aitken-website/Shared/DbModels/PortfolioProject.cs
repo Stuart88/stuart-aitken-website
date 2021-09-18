@@ -8,7 +8,7 @@ namespace Shared.DbModels
 {
     public class PortfolioProject
     {
-        public int Id { get; set; }
+        public int ProjectId { get; set; }
         public string Name { get; set; }
         public DateTime ProjectDate { get; set; }
         public int ProjectDurationWeeks { get; set; }
