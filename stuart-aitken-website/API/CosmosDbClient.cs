@@ -1,5 +1,5 @@
 ﻿using Microsoft.Azure.Cosmos;
-using Shared.DbModels;
+using SharedProject.DbModels;
 using System;
 using System.Collections.Generic;
 using System.Configuration;

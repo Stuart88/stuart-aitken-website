@@ -1,0 +1,44 @@
+﻿
+@page "/projects"
+
+@using System.Net.Http
+@using System.Net.Http.Json
+@using System.Threading.Tasks
+@inject HttpClient Http
+
+<h3>Projects</h3>
+
+
+@if (loading)
+{
+    <div>LOADING...</div>
+}
+else
+{
+    @foreach (var p in this.ProjectsItems)
+    {
+        <div>@p.Name</div>
+    }
+}
+
+
+@code {
+
+    bool loading { get; set; } = true;
+
+    List<PortfolioProject> ProjectsItems { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        try
+        {
+            ProjectsItems = await Http.GetFromJsonAsync<List<PortfolioProject>>(SharedProject.Constants.Urls.GetAllProjects);
+            this.loading = false;
+            await base.OnInitializedAsync();
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine(e);
+        }
+    }
+}

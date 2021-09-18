@@ -16,6 +16,7 @@ namespace API
     [Route("api")]
     public static class Function1
     {
+        
         [FunctionName("GetAllProjects")]
         //[OpenApiOperation(operationId: "Run", tags: new[] { "name" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
