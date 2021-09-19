@@ -13,6 +13,11 @@ else
     <Div>
         <h4>EDITING: @p.Name</h4>
 
+        <Blazorise.Bootstrap.Button Color="Color.Primary"
+                                    Clicked="OnSave">
+            SAVE <Icon Name="IconName.Save" />
+        </Blazorise.Bootstrap.Button>
+
         <div class="row">
             <Div class="col-md-6">
 
@@ -68,8 +73,9 @@ else
                         {
                             if (t == AppState.TypeSelectPlaceholder || t == AppState.TechSelectPlaceholder)
                                 continue;
-
-                            <Check Inline="true" TValue="bool" Checked="@p.Tech.Contains(t)" CheckedChanged="@(() => TechItemChecked(t))">@t</Check>
+                            <Div Class="tech-select-check d-inline-block">
+                                <Check Class="hover-pointer" Inline="true" TValue="bool" Checked="@p.Tech.Contains(t)" CheckedChanged="@(() => TechItemChecked(t))">@t</Check>
+                            </Div>
                         }
                     </div>
                 </Field>
@@ -98,11 +104,6 @@ else
                                 <RichTextEditToolbarButton Action="RichTextEditAction.List" Value="bullet" />
                                 <RichTextEditToolbarButton Action="RichTextEditAction.Indent" />
                                 <RichTextEditToolbarButton Action="RichTextEditAction.CodeBlock" />
-                            </RichTextEditToolbarGroup>
-                            <!-- Custom toolbar content -->
-                            <RichTextEditToolbarGroup Float="Float.Right">
-                                @* <Button onClick="window.open('https://www.quilljs.com/','quilljs')"><Icon Name="IconName.InfoCircle" /></Button>*@
-                                <Button Clicked="@OnSave"><Icon Name="IconName.Save" /></Button>
                             </RichTextEditToolbarGroup>
                         </Toolbar>
                         <Editor>@((MarkupString)(p.Description))</Editor>
@@ -156,6 +157,7 @@ else
         }
 
         ProjectItem = AppState.GetProject(this.Id);
+        IsNew = ProjectItem.ProjectId < 1;
 
         if (IsNew)
         {
@@ -195,7 +197,15 @@ else
 
     public async Task OnSave()
     {
-        savedContent = await richTextEditRef.GetHtmlAsync();
+        Console.WriteLine("Saving!");
+
+        ProjectItem.Urls = string.Join(",", ProjectUrls.Where(s => !string.IsNullOrEmpty(s)));
+
+        foreach(var p in ProjectItem.GetType().GetProperties())
+        {
+            Console.WriteLine($"{p.Name}: {p.GetValue(ProjectItem)}");
+            
+        }
     }
 
     void TechItemChecked(string t)
@@ -210,6 +220,6 @@ else
             currentItems.Add(t);
         }
 
-        ProjectItem.Tech = string.Join(',', currentItems);
+        ProjectItem.Tech = string.Join(',', currentItems.Where(s => !string.IsNullOrEmpty(s)));
     }
 }

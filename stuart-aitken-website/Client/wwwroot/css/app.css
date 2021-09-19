@@ -69,6 +69,21 @@ a, .btn-link {
     width: 100%;
 }
 
+.tech-select-check {
+    background: #d8d8d8;
+    color: darkblue;
+    padding: 5px 10px 5px 10px;
+    margin-left: 5px;
+    margin-bottom: 4px;
+    border-radius: 10px;
+}
+.tech-select-check:hover{
+    cursor:pointer;
+}
+.hover-pointer:hover{
+    cursor:pointer;
+}
+
 @media only screen and (max-width: 600px) {
     .hide-on-mobile {
         display: none;
