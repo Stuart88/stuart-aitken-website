@@ -48,3 +48,19 @@ a, .btn-link {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+
+.filters-container {
+    display: flex;
+    flex-direction: row;
+    max-width: 600px;
+}
+
+    .filters-container input {
+        width: 60%;
+        min-width: 400px;
+    }
+    .filters-container select {
+        width: 20%;
+        min-width:200px;
+    }

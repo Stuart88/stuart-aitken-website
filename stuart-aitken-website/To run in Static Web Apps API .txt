@@ -1,0 +1,30 @@
+
+Ensure node is isntalled
+
+Open CMD, then:
+
+(if needed)
+
+ npm install -g @azure/static-web-apps-cli
+ npm install -g azure-functions-core-tools@3 --unsafe-perm true
+
+(is needed)
+
+Go to root of project eg cd my-website-root (where the VS .sln file exists)
+
+(cd "D:\Programming\Blazor\stuart-aitken-website\stuart-aitken-website\")
+
+THE IMPORTANT BIT TO MAKE IT RUN
+ 
+ swa start https://localhost:5000 --run "dotnet watch -p Client run" --api ./Api
+
+
+______________
+
+Also potentially useful (if api isn't working or detecting existing functions): 
+
+- Go to root of Api project then run command:
+  
+  func init --force
+  
+- This will set up the project for dotnet and create the necessary settings so that the above "swa start" command will work properyl
