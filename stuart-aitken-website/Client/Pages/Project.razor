@@ -1,0 +1,97 @@
+﻿
+
+@page "/project/{Id:int}/{Name}"
+@inject AppState AppState
+
+@if (this.ProjectItem == null)
+{
+    <Div>LOADING...</Div>
+}
+else
+{
+    var p = this.ProjectItem;
+<Div>
+    <h4>@p.Name</h4>
+   
+    <RichTextEdit @ref="richTextEditRef"
+                  Theme="RichTextEditTheme.Snow"
+                  ContentChanged="@OnContentChanged"
+                  PlaceHolder="Type project description here..."
+                  ReadOnly="@readOnly"
+                  SubmitOnEnter="false"
+                  EnterPressed="@OnSave"
+                  ToolbarPosition="Placement.Bottom">
+        <Toolbar>
+            <RichTextEditToolbarGroup>
+                <RichTextEditToolbarButton Action="RichTextEditAction.Bold" />
+                <RichTextEditToolbarButton Action="RichTextEditAction.Italic" />
+                <RichTextEditToolbarSelect Action="RichTextEditAction.Size">
+                    <RichTextEditToolbarSelectItem Value="small" />
+                    <RichTextEditToolbarSelectItem Selected="true" />
+                    <RichTextEditToolbarSelectItem Value="large" />
+                    <RichTextEditToolbarSelectItem Value="huge">Very Big</RichTextEditToolbarSelectItem>
+                </RichTextEditToolbarSelect>
+                <RichTextEditToolbarButton Action="RichTextEditAction.List" Value="ordered" />
+                <RichTextEditToolbarButton Action="RichTextEditAction.List" Value="bullet" />
+            </RichTextEditToolbarGroup>
+            <!-- Custom toolbar content -->
+            <RichTextEditToolbarGroup Float="Float.Right">
+               @* <Button onClick="window.open('https://www.quilljs.com/','quilljs')"><Icon Name="IconName.InfoCircle" /></Button>*@
+                <Button Clicked="@OnSave"><Icon Name="IconName.Save" /></Button>
+            </RichTextEditToolbarGroup>
+        </Toolbar>
+        <Editor>@((MarkupString)(p.Description))</Editor>
+    </RichTextEdit>
+</Div>
+}
+
+@code {
+
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string Name { get; set; } = "View Project";
+
+    PortfolioProject ProjectItem { get; set; }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        this.Name = System.Web.HttpUtility.UrlDecode(this.Name);
+
+        Console.WriteLine($"Viewing: {this.Id}: {this.Name}");
+
+        if (!AppState.HasProjects)
+        {
+            await AppState.LoadAllProjects();
+        }
+
+        ProjectItem = AppState.GetProject(this.Id);
+
+        await base.OnParametersSetAsync();
+    }
+
+
+    private RichTextEdit richTextEditRef;
+    private bool readOnly;
+    private string contentAsHtml;
+    private string contentAsDeltaJson;
+    private string contentAsText;
+    private string savedContent;
+
+    public async Task OnContentChanged()
+    {
+        ProjectItem.Description = await richTextEditRef.GetHtmlAsync();
+        //contentAsDeltaJson = await richTextEditRef.GetDeltaAsync();
+        //contentAsText = await richTextEditRef.GetTextAsync();
+
+    }
+
+    public async Task OnSave()
+    {
+        savedContent = await richTextEditRef.GetHtmlAsync();
+        Console.WriteLine(savedContent);
+    }
+
+}

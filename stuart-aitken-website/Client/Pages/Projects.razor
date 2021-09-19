@@ -1,7 +1,8 @@
 ﻿
 @page "/projects"
-
 @inject AppState AppState
+@inject NavigationManager NavigationManager
+
 
 <h3>Projects</h3>
 
@@ -16,25 +17,68 @@ else if (!AppState.HasProjects)
 }
 else
 {
-    <div class="filters-container">
-        <TextEdit @bind-Text="ProjectNameSearch" Placeholder="Filter Name" />
-        <Select TValue="String" @bind-SelectedValue="@SelectedTechFilter">
-            @foreach (string t in AppState.GetProjectTechs())
+    <Table Hoverable="true">
+        <TableHeader>
+            <TableRow>
+                <TableHeaderCell></TableHeaderCell>
+                <TableHeaderCell>
+                    <TextEdit @bind-Text="ProjectNameSearch" Placeholder="Filter Name" KeyUp="CheckAdminEntry" />
+                </TableHeaderCell>
+                <TableHeaderCell>
+                    <Select TValue="String" @bind-SelectedValue="@SelectedTypeFilter" Style="max-width:200px">
+                        @foreach (string t in AppState.GetProjectTypes())
+                        {
+                            <SelectItem Value="@(t)">@t</SelectItem>
+                        }
+                    </Select>
+                </TableHeaderCell>
+                <TableHeaderCell Class="hide-on-mobile">
+                    <Select TValue="String" @bind-SelectedValue="@SelectedTechFilter" Style="max-width:200px">
+                        @foreach (string t in AppState.GetProjectTechs())
+                        {
+                            <SelectItem Value="@(t)">@t</SelectItem>
+                        }
+                    </Select>
+                </TableHeaderCell>
+                @if (ShowAdminTools)
+                {
+                    <TableHeaderCell>
+                    </TableHeaderCell>
+                }
+            </TableRow>
+            <TableRow>
+                <TableHeaderCell>Date</TableHeaderCell>
+                <TableHeaderCell>Name</TableHeaderCell>
+                <TableHeaderCell Class="hide-on-mobile">Type</TableHeaderCell>
+                <TableHeaderCell>Tech</TableHeaderCell>
+                @if (ShowAdminTools)
+                {
+                    <TableHeaderCell>
+                        <Blazorise.Bootstrap.Button Color="Color.Primary" Clicked="@(() => GoToEditProject(0, "New Project"))">New</Blazorise.Bootstrap.Button>
+                    </TableHeaderCell>
+                }
+            </TableRow>
+        </TableHeader>
+        <TableBody>
+            @foreach (var p in AppState.ProjectsFiltered(this.ProjectNameSearch, this.SelectedTechFilter, this.SelectedTypeFilter))
             {
-                <SelectItem Value="@(t)">@t</SelectItem>
+            <TableRow HoverCursor="Cursor.Pointer" Clicked="@(() => NavigationManager.NavigateTo($"/project/{p.ProjectId}/{System.Web.HttpUtility.UrlEncode(p.Name)}"))">
+                <TableRowCell>@p.CreationDate.ToString("MMM-yyyy")</TableRowCell>
+                <TableRowCell>@p.Name</TableRowCell>
+                <TableRowCell>@p.Type</TableRowCell>
+                <TableRowCell Class="hide-on-mobile">@p.Tech</TableRowCell>
+                @if (ShowAdminTools)
+                {
+                    <TableHeaderCell>
+                        <Blazorise.Bootstrap.Button Color="Color.Primary" Clicked="@(() => GoToEditProject(p.ProjectId, p.Name))">Edit</Blazorise.Bootstrap.Button>
+                    </TableHeaderCell>
+                }
+            </TableRow>
             }
-        </Select>
-        <Select TValue="String" @bind-SelectedValue="@SelectedTypeFilter">
-            @foreach (string t in AppState.GetProjectTypes())
-            {
-                <SelectItem Value="@(t)">@t</SelectItem>
-            }
-        </Select>
-    </div>
-    @foreach (var p in AppState.ProjectsFiltered(this.ProjectNameSearch, this.SelectedTechFilter, this.SelectedTypeFilter))
-    {
-        <div>@p.Name</div>
-    }
+        </TableBody>
+    </Table>
+        
+        
 }
 
 
@@ -44,6 +88,7 @@ else
     public string ProjectNameSearch { get; set; }
     public string SelectedTechFilter { get; set; }
     public string SelectedTypeFilter { get; set; }
+    public bool ShowAdminTools { get; set; }
 
     protected async override Task OnInitializedAsync()
     {
@@ -65,5 +110,25 @@ else
         {
             this.Loading = false;
         }
+    }
+
+    void CheckAdminEntry(KeyboardEventArgs ev)
+    {
+        if(ev.Code == "Escape")
+        {
+            this.ProjectNameSearch = "";
+        }
+
+        if(ev.Code == "Enter" && ProjectNameSearch == "adminio" && !ShowAdminTools)
+        {
+            ShowAdminTools = true;
+            this.ProjectNameSearch = "";
+        }
+    }
+
+    void GoToEditProject(int id, string name)
+    {
+        AppState.LoginToken = SharedProject.Helpers.RandomToken();
+        NavigationManager.NavigateTo($"/edit-project/{id}/{System.Web.HttpUtility.UrlEncode(name)}/{AppState.LoginToken}");
     }
 }

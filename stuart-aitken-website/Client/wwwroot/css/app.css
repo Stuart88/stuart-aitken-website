@@ -64,3 +64,13 @@ a, .btn-link {
         width: 20%;
         min-width:200px;
     }
+
+.full-width{
+    width: 100%;
+}
+
+@media only screen and (max-width: 600px) {
+    .hide-on-mobile {
+        display: none;
+    }
+}

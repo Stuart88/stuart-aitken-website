@@ -1,0 +1,215 @@
+﻿
+@page "/edit-project/{Id:int}/{Name}/{LoginToken}"
+@inject AppState AppState
+@inject NavigationManager NavigationManager
+
+@if (this.ProjectItem == null)
+{
+    <Div>LOADING...</Div>
+}
+else
+{
+    var p = this.ProjectItem;
+    <Div>
+        <h4>EDITING: @p.Name</h4>
+
+        <div class="row">
+            <Div class="col-md-6">
+
+                <Field>
+                    <FieldLabel>Project Name</FieldLabel>
+                    <TextEdit @bind-Text="@p.Name" Placeholder="Project Name" />
+                </Field>
+                <Field>
+                    <FieldLabel>Project Date</FieldLabel>
+                    <DateEdit @bind-Date="@p.ProjectDate" Style="max-width:200px" />
+                </Field>
+                <Field>
+                    <FieldLabel>Project Duration (weeks)</FieldLabel>
+                    <NumericEdit @bind-Value="@p.ProjectDurationWeeks" Style="max-width:200px" />
+                </Field>
+                <Field>
+                    <FieldLabel>Urls</FieldLabel>
+                    @foreach (string s in ProjectUrls)
+                    {
+                        <Table class="full-width" Borderless="true" Narrow="true">
+                            <TableBody>
+                                <TableRow>
+                                    <TableRowCell VerticalAlignment="VerticalAlignment.Middle">
+                                        @s
+                                    </TableRowCell>
+                                    <TableRowCell VerticalAlignment="VerticalAlignment.Middle" Style="width:60px">
+                                        <Blazorise.Bootstrap.Button Color="Color.Danger"
+                                                                    Clicked="(() => this.ProjectUrls.Remove(s))">
+                                            Del
+                                        </Blazorise.Bootstrap.Button>
+                                    </TableRowCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    }
+                    <TextEdit @bind-Text="UrlInput" Placeholder="Add URL" KeyUp="UrlInputKeyUp" />
+                </Field>
+                <Field>
+                    <FieldLabel>Type</FieldLabel>
+                    <div>
+                        <Select TValue="String" @bind-SelectedValue="@p.Type" Style="max-width:200px">
+                            @foreach (string t in AppState.GetProjectTypes())
+                            {
+                                <SelectItem Value="@(t)">@t</SelectItem>
+                            }
+                        </Select>
+                    </div>
+                </Field>
+                <Field>
+                    <FieldLabel>Techs</FieldLabel>
+                    <div>
+                        @foreach (string t in AppState.GetProjectTechs())
+                        {
+                            if (t == AppState.TypeSelectPlaceholder || t == AppState.TechSelectPlaceholder)
+                                continue;
+
+                            <Check Inline="true" TValue="bool" Checked="@p.Tech.Contains(t)" CheckedChanged="@(() => TechItemChecked(t))">@t</Check>
+                        }
+                    </div>
+                </Field>
+
+                <Field>
+                    <FieldLabel>Description</FieldLabel>
+                    <RichTextEdit @ref="richTextEditRef"
+                                  Theme="RichTextEditTheme.Snow"
+                                  ContentChanged="@OnContentChanged"
+                                  PlaceHolder="Type project description here..."
+                                  ReadOnly="false"
+                                  SubmitOnEnter="false"
+                                  ToolbarPosition="Placement.Bottom">
+                        <Toolbar>
+                            <RichTextEditToolbarGroup>
+                                <RichTextEditToolbarButton Action="RichTextEditAction.Bold" />
+                                <RichTextEditToolbarButton Action="RichTextEditAction.Italic" />
+                                <RichTextEditToolbarButton Action="RichTextEditAction.Blockquote" />
+                                <RichTextEditToolbarSelect Action="RichTextEditAction.Size">
+                                    <RichTextEditToolbarSelectItem Value="small" />
+                                    <RichTextEditToolbarSelectItem Selected="true" />
+                                    <RichTextEditToolbarSelectItem Value="large" />
+                                    <RichTextEditToolbarSelectItem Value="huge">Very Big</RichTextEditToolbarSelectItem>
+                                </RichTextEditToolbarSelect>
+                                <RichTextEditToolbarButton Action="RichTextEditAction.List" Value="ordered" />
+                                <RichTextEditToolbarButton Action="RichTextEditAction.List" Value="bullet" />
+                                <RichTextEditToolbarButton Action="RichTextEditAction.Indent" />
+                                <RichTextEditToolbarButton Action="RichTextEditAction.CodeBlock" />
+                            </RichTextEditToolbarGroup>
+                            <!-- Custom toolbar content -->
+                            <RichTextEditToolbarGroup Float="Float.Right">
+                                @* <Button onClick="window.open('https://www.quilljs.com/','quilljs')"><Icon Name="IconName.InfoCircle" /></Button>*@
+                                <Button Clicked="@OnSave"><Icon Name="IconName.Save" /></Button>
+                            </RichTextEditToolbarGroup>
+                        </Toolbar>
+                        <Editor>@((MarkupString)(p.Description))</Editor>
+                    </RichTextEdit>
+                </Field>
+
+
+            </Div>
+            <Div class="col-md-6">
+
+            </Div>
+        </div>
+    </Div>
+}
+
+@inject AppState AppState
+
+@code {
+
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public string Name { get; set; } = "View Project";
+
+    [Parameter]
+    public string LoginToken { get; set; } = "";
+
+    bool IsNew { get; set; }
+
+    PortfolioProject ProjectItem { get; set; }
+
+    List<string> ProjectUrls { get; set; }
+    string UrlInput { get; set; }
+
+    protected async override Task OnParametersSetAsync()
+    {
+        if (AppState.LoginToken != this.LoginToken || string.IsNullOrEmpty(AppState.LoginToken))
+        {
+            NavigationManager.NavigateTo("/projects");
+            return;
+        }
+
+        this.Name = System.Web.HttpUtility.UrlDecode(this.Name);
+
+        Console.WriteLine($"Viewing: {this.Id}: {this.Name}");
+
+        if (!AppState.HasProjects)
+        {
+            await AppState.LoadAllProjects();
+        }
+
+        ProjectItem = AppState.GetProject(this.Id);
+
+        if (IsNew)
+        {
+            ProjectItem.ProjectId = AppState.GetNextProjectId();
+            ProjectItem.Status = 1;
+            ProjectItem.Views = 0;
+        }
+
+        ProjectUrls = ProjectItem.Urls.Split(",").Where(url => !string.IsNullOrEmpty(url)).ToList();
+
+
+        await base.OnParametersSetAsync();
+    }
+
+    void UrlInputKeyUp(KeyboardEventArgs e)
+    {
+        if(e.Code == "Enter")
+        {
+            ProjectUrls.Add(UrlInput);
+            UrlInput = "";
+        }
+    }
+
+
+    private RichTextEdit richTextEditRef;
+    private bool readOnly;
+    private string contentAsHtml;
+    private string contentAsDeltaJson;
+    private string contentAsText;
+    private string savedContent;
+
+    public async Task OnContentChanged()
+    {
+        ProjectItem.Description = await richTextEditRef.GetHtmlAsync();
+
+    }
+
+    public async Task OnSave()
+    {
+        savedContent = await richTextEditRef.GetHtmlAsync();
+    }
+
+    void TechItemChecked(string t)
+    {
+        List<string> currentItems = ProjectItem.Tech.Split(",").ToList();
+        if (currentItems.Contains(t))
+        {
+            currentItems.Remove(t);
+        }
+        else
+        {
+            currentItems.Add(t);
+        }
+
+        ProjectItem.Tech = string.Join(',', currentItems);
+    }
+}

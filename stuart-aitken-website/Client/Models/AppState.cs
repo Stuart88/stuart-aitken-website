@@ -12,8 +12,13 @@ namespace Client.Models
     public class AppState
     {
         private List<PortfolioProject> Projects { get; set; }
-        private const string TechSelectPlaceholder = "-- Tech --";
-        private const string TypeSelectPlaceholder = "-- Types --";
+        public const string TechSelectPlaceholder = "-- Tech --";
+        public const string TypeSelectPlaceholder = "-- Types --";
+
+        public string LoginToken { get; set; } = "";
+
+       
+
         private HttpClient Http {get;set;}
         public AppState()
         {
@@ -28,7 +33,21 @@ namespace Client.Models
 
         public PortfolioProject GetProject(int id)
         {
-            return Projects.First(p => p.ProjectId == id);
+            return Projects.FirstOrDefault(p => p.ProjectId == id) ?? new PortfolioProject();
+        }
+
+        public List<PortfolioProject> GetProjectsWithQuery(Func<PortfolioProject, bool> predicate)
+        {
+            return Projects.Where(predicate).ToList();
+        }
+
+        /// <summary>
+        /// Returns Id for new project
+        /// </summary>
+        /// <returns></returns>
+        public int GetNextProjectId()
+        {
+            return Projects.Max(p => p.ProjectId);
         }
 
         public List<PortfolioProject> GetAllProjects()

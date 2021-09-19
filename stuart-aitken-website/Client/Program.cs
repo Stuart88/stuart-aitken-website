@@ -11,6 +11,7 @@ using Blazorise;
 using Blazorise.Bootstrap;
 using Blazorise.Icons.FontAwesome;
 using Client.Models;
+using Blazorise.RichTextEdit;
 
 namespace Client
 {
@@ -26,7 +27,8 @@ namespace Client
                     options.ChangeTextOnKeyPress = true;
                 })
                 .AddBootstrapProviders()
-                .AddFontAwesomeIcons();
+                .AddFontAwesomeIcons()
+                .AddBlazoriseRichTextEdit(options => { options.UseShowTheme = true; });
 
             builder.Services.AddScoped<AppState>();
 

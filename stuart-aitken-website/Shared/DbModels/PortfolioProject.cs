@@ -11,7 +11,7 @@ namespace SharedProject.DbModels
         public int ProjectId { get; set; }
         public string Name { get; set; }
         public DateTime ProjectDate { get; set; }
-        public int ProjectDurationWeeks { get; set; }
+        public double ProjectDurationWeeks { get; set; }
         public string Type { get; set; }
         public string Description { get; set; }
         public string Tech { get; set; }

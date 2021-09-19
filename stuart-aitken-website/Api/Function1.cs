@@ -25,6 +25,18 @@ namespace API
 
             return new JsonResult(data);
         }
+
+        [FunctionName("AdminLogin")]
+        public static async Task<IActionResult> AdminLogin([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req, ILogger log)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request.");
+
+            CosmosDbClient db = new CosmosDbClient();
+
+            var data = await db.GetAllProjects();
+
+            return new JsonResult(data);
+        }
     }
 }
 
